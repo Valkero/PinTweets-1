@@ -7,6 +7,9 @@ if (navigator.appName == 'Microsoft Internet Explorer' && window.location == 'in
 	//URL to redirect to
 }
 
+
+String.prototype.contains = function(it) { return this.indexOf(it) != -1; };
+
 //ONE GLOBAL OBJECT
 var global = new Global();
 
@@ -1038,15 +1041,13 @@ function loadMap() {
 
 		}
 
-		function withinPin() {
-
-		}
 
 		function useGoogle(user) {
 
 			//apply heuristics
-			var locationString = user.location.replace(/^[^A-Za-z0-9\-]+/, '').replace(/[^A-Za-z0-9]+$/, '').replace(/\$/ig, 's');
-
+			var locationString = "New York City, New York"//user.location.replace(/^[^A-Za-z0-9\-]+/, '').replace(/[^A-Za-z0-9]+$/, '').replace(/\$/ig, 's');
+		
+	
 			if (/Cali/i.test(locationString) && !/California/i.test(locationString) && !/Colombia/i.test(locationString)) {
 				locationString = locationString.replace(/Cali/ig, "California");
 			} else if (/Jersey/i.test(locationString) && !/New\s*Jersey/i.test(locationString) && !/Britain/i.test(locationString) && !/Channel Island/i.test(locationString)) {
@@ -1054,10 +1055,26 @@ function loadMap() {
 				//What up, Tyga?
 			} else if (/\WRack\s*City/i.test(locationString) || /^Rack\s*City/i.test(locationString)) {
 				locationString = locationString.replace(/Rack\s*City/ig, "Las Vegas");
+			} else if (/Gotham City/i.test(locationString) || /Gotham/i.test(locationString)) {
+				locationString = locationString.replace(/Gotham/ig, "Chicago");
+			} else if (/Where the party at/i.test(locationString) || /the party/i.test(locationString)) {
+				locationString = locationString.replace(/Where the party at/ig, "Staten Island");
 			} else if ((/\s+/i.test(locationString) ? (locationString.match(/\s+/ig).length > 3) : false) && !/[,]/i.test(locationString)) {
 				didNotGetCoords(user.screen_name);
 				return;
-			} else if (/worldwide/i.test(locationString)) {
+			}else if ((/\!!/i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- Exclamation Marks detected")
+				return;
+			}/*else if ((/.../i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- ... detected")
+				return;
+			} else if ((/…/i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- ... detected")
+				return;
+			} */else if (/worldwide/i.test(locationString)) {
 				didNotGetCoords(user.screen_name);
 				return;
 			} else if (/Universe/i.test(locationString)) {
@@ -1070,8 +1087,9 @@ function loadMap() {
 				didNotGetCoords(user.screen_name);
 				return;
 			}
-
-			var str = "Batman is the coolest thing ever";
+			
+			
+			var str = locationString;
 			/*if(str.indexOf("ing")>0 || str.indexOf("in") > 0){
 				str+=",";
 			}*/
@@ -1079,24 +1097,26 @@ function loadMap() {
 			if(str.match(/\s+/g).length > 2 && !/\,/i.test(str) == true){
 				var s = str.split(" ",3);
 			    var locationString = s[0]+" "+s[1]+" "+s[2];
-			    console.log(locationString + "---true");
+			    console.log(locationString + "-true");
 			}else{
 				var locationString = str;
-				console.log(locationString + "---false");
+				console.log(locationString + "-false");
 			}
-			/*var chartxt = txt.split('');
+			
+			/*var chartxt = str.split('');
 			var count = 0;
 			for(i = 0;i<chartxt.length;i++){
 				if(chartxt[i] == ' ')
 					count++;
+				console.log(count + " --- --- --- -- -- -- -- -- --");
 			}
 			if(count >= 3){
-				var s = txt.split(" ",3);
+				var s = str.split(" ",3);
 				var locationString = s[0]+" "+s[1]+" "+s[2];
-				alert(locationString);
+				//alert(locationString);
 			}else{
-				var locationString = txt;
-				alert(locationString);
+				var locationString = str;
+				//alert(locationString);
 			}*/
 			
 			
@@ -1111,13 +1131,20 @@ function loadMap() {
 					console.log(locationString);
 					console.log(results);
 					console.log('\n')
+					
 					gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
-
-					/*if (results.length <= 2 || (/Paris/i.test(locationString) || (/ATL/i.test(locationString)) || (/Miami/i.test(locationString)))) {
-					 gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
+					 /*if(user.location.contains(locationString)> 0){
+					  gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
 					 } else {
 					 didNotGetCoords(user.screen_name);
 					 }*/
+					 	
+					 
+					/* if (results.length <= 2 || (/Paris/i.test(locationString) || (/ATL/i.test(locationString)) || (/Miami/i.test(locationString)))) {
+					 gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
+					 } else {
+					 didNotGetCoords(user.screen_name);
+					 } */
 				} else {
 
 					console.log('not okay');
