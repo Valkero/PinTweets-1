@@ -113,7 +113,7 @@ $(document).ready(function() {
 			window.location.hash = getSearchHash();
 			loadMap();
 		},
-		timeout : 20000,
+		timeout : 15000,
 		error : onTimeout//nearly impossible
 	});
 
@@ -133,7 +133,7 @@ function Global() {
 	this.searchesPerRound = 2;
 	this.requestedLocations = 50;
 	this.maxMarkers = 26;
-	this.searchInterval = 4000;
+	this.searchInterval = 3000;
 	//milliseconds
 	this.rezoomInterval = 1;
 	//searchIntervals
@@ -433,57 +433,21 @@ function zoom(content, map) {
 		/**
 		 * Good old copy-and-pasted 3d trig
 		 */
-		function haversine(latLngFirst, latLngSecond) {
-
-			var lat1 = latLngFirst.lat()
-			var lon1 = latLngFirst.lng()
-			var lat2 = latLngSecond.lat()
-			var lon2 = latLngSecond.lng()
-
-			var R = 3958.7558657440545;
-			// miles
-			var dLat = (lat2 - lat1).toRad();
-			var dLon = (lon2 - lon1).toRad();
-			var lat1 = lat1.toRad();
-			var lat2 = lat2.toRad();
-
-			var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
-			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-			return R * c;
-
-		}
 
 		var bounds = new google.maps.LatLngBounds();
-
 		var allOutOfBounds = true;
 		var oneOutOfBounds = false;
 
+		bounds.extend(global.pin.getPosition());
 		for ( i = 0; i < markers.length; i++) {
 
-			var radius = $('#radius').val();
-			var relaxation = 1;
-
-			//be more relaxed about smaller radii
-			if (radius <= 100) {
-				relaxation = 3;
-			} else if (radius <= 500) {
-				relaxation = 2;
-			} else if (radius <= 1000) {
-				relaxation = 1.5;
-			} else {
-				relaxation = 1;
-			}
-
-			if (haversine(global.pin.getPosition(), markers[i].position) < radius * relaxation) {
-				bounds.extend(markers[i].position);
-				allOutOfBounds = false;
-			} else {
+			if (!withinPin(markers[i].lat, markers[i].lng)) {
 				oneOutOfBounds = true;
+			} else {
+				allOutOfBounds = false;
 			}
+			bounds.extend(markers[i].getPosition());
 		}
-
-		bounds.extend(global.pin.getPosition());
 
 		if (allOutOfBounds) {
 
@@ -995,26 +959,26 @@ function loadMap() {
 		function gotCoords(userName, lat, lng) {
 
 			//filter out 0,0
-			if (lat == 0 && lng == 0) {
+			if (!withinPin(lat, lng) || (lat == 0 && lng == 0)) {
 				console.log('Filtering out 0,0 for ' + userName);
 				didNotGetCoords(userName);
+			} else {
+				$.each(results, function() {
+
+					if (!this.waiting) {
+						return;
+					}
+					if (this.from_user == userName) {
+
+						this.geo_info.valid = true;
+						this.geo_info.lat = lat;
+						this.geo_info.lng = lng;
+						addToMap(map, this);
+
+					}
+
+				});
 			}
-
-			$.each(results, function() {
-
-				if (!this.waiting) {
-					return;
-				}
-				if (this.from_user == userName) {
-
-					this.geo_info.valid = true;
-					this.geo_info.lat = lat;
-					this.geo_info.lng = lng;
-					addToMap(map, this);
-
-				}
-
-			});
 
 		}
 
@@ -1035,10 +999,6 @@ function loadMap() {
 			});
 
 			checkIfDone();
-
-		}
-
-		function withinPin() {
 
 		}
 
@@ -1071,36 +1031,6 @@ function loadMap() {
 				return;
 			}
 
-			var str = "Batman is the coolest thing ever";
-			/*if(str.indexOf("ing")>0 || str.indexOf("in") > 0){
-				str+=",";
-			}*/
-			str+=" ";
-			if(str.match(/\s+/g).length > 2 && !/\,/i.test(str) == true){
-				var s = str.split(" ",3);
-			    var locationString = s[0]+" "+s[1]+" "+s[2];
-			    console.log(locationString + "---true");
-			}else{
-				var locationString = str;
-				console.log(locationString + "---false");
-			}
-			/*var chartxt = txt.split('');
-			var count = 0;
-			for(i = 0;i<chartxt.length;i++){
-				if(chartxt[i] == ' ')
-					count++;
-			}
-			if(count >= 3){
-				var s = txt.split(" ",3);
-				var locationString = s[0]+" "+s[1]+" "+s[2];
-				alert(locationString);
-			}else{
-				var locationString = txt;
-				alert(locationString);
-			}*/
-			
-			
-
 			new google.maps.Geocoder().geocode({
 				'address' : locationString
 			}, function(results, status) {
@@ -1111,13 +1041,11 @@ function loadMap() {
 					console.log(locationString);
 					console.log(results);
 					console.log('\n')
-					gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
-
-					/*if (results.length <= 2 || (/Paris/i.test(locationString) || (/ATL/i.test(locationString)) || (/Miami/i.test(locationString)))) {
-					 gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
-					 } else {
-					 didNotGetCoords(user.screen_name);
-					 }*/
+					if (results.length <= 3 || (/Springfield/i.test(locationString) || /Atl/i.test(locationString))) {
+						gotCoords(user.screen_name, results[0].geometry.location.lat(), results[0].geometry.location.lng())
+					} else {
+						didNotGetCoords(user.screen_name);
+					}
 				} else {
 
 					console.log('not okay');
@@ -1291,3 +1219,62 @@ function loadMap() {
 	}
 
 };
+
+function withinPin(lat, lng) {
+	if (global.pin) {
+		function haversine(latFirst, lngFirst, latSecond, lngSecond) {
+
+			var lat1 = latFirst
+			var lon1 = lngFirst
+			var lat2 = latSecond
+			var lon2 = lngSecond
+
+			var R = 3958.7558657440545;
+			// miles
+			var dLat = (lat2 - lat1).toRad();
+			var dLon = (lon2 - lon1).toRad();
+			var lat1 = lat1 * Math.PI / 180;
+			var lat2 = lat2 * Math.PI / 180;
+
+			var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+			var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+			return R * c;
+
+		}
+
+		var radius = $('#radius').val();
+		var relaxation = 1;
+
+		//be more relaxed about smaller radii
+		if (radius <= 100) {
+			relaxation = 3;
+		} else if (radius <= 500) {
+			relaxation = 2;
+		} else if (radius <= 1000) {
+			relaxation = 1.5;
+		} else {
+			relaxation = 1;
+		}
+
+		if (haversine(global.pin.getPosition().lat(), global.pin.getPosition().lng(), lat, lng) < radius * relaxation) {
+			return true;
+		} else {
+			return false;
+		}
+
+	} else {
+		return true;
+	}
+}
+
+function generateKey() {
+	var valArray = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+	var outString = '';
+	var randomCharID = 0;
+	for ( i = 0; i < 42; i++) {
+		randomCharID = Math.floor(Math.random() * 62);
+		outString = outString + valArray[randomCharID];
+	}
+	return outString;
+}
