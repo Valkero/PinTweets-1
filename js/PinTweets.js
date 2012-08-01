@@ -94,7 +94,7 @@ $(document).ready(function() {
 	//declare map
 	var myOptions = {
 		zoom : 15,
-		center : google.maps.LatLng(13.4125, 103.8667), //angkor wat
+		center : google.maps.LatLng(103.8667, 13.4125), //angkor wat
 		mapTypeId : google.maps.MapTypeId.SATELLITE
 	};
 
@@ -1045,7 +1045,7 @@ function loadMap() {
 		function useGoogle(user) {
 
 			//apply heuristics
-			var locationString = "New York City, New York"//user.location.replace(/^[^A-Za-z0-9\-]+/, '').replace(/[^A-Za-z0-9]+$/, '').replace(/\$/ig, 's');
+			var locationString = "Where the party at"//user.location.replace(/^[^A-Za-z0-9\-]+/, '').replace(/[^A-Za-z0-9]+$/, '').replace(/\$/ig, 's');
 		
 	
 			if (/Cali/i.test(locationString) && !/California/i.test(locationString) && !/Colombia/i.test(locationString)) {
@@ -1062,11 +1062,27 @@ function loadMap() {
 			} else if ((/\s+/i.test(locationString) ? (locationString.match(/\s+/ig).length > 3) : false) && !/[,]/i.test(locationString)) {
 				didNotGetCoords(user.screen_name);
 				return;
-			}else if ((/\!!/i.test(locationString))) {
+			} else if ((/\!!/i.test(locationString))) {
 				didNotGetCoords(user.screen_name);
 				console.log("Pass -- Exclamation Marks detected")
 				return;
-			}/*else if ((/.../i.test(locationString))) {
+			} else if ((/&/i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- Exclamation Marks detected")
+				return;
+			} else if ((/I'm/i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- Exclamation Marks detected")
+				return;
+			} else if ((/\//i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- ... detected")
+				return;
+			} else if ((/Yo/i.test(locationString))) {
+				didNotGetCoords(user.screen_name);
+				console.log("Pass -- ... detected")
+				return;
+			} else if ((/\.\.\./i.test(locationString))) {
 				didNotGetCoords(user.screen_name);
 				console.log("Pass -- ... detected")
 				return;
@@ -1074,7 +1090,7 @@ function loadMap() {
 				didNotGetCoords(user.screen_name);
 				console.log("Pass -- ... detected")
 				return;
-			} */else if (/worldwide/i.test(locationString)) {
+			} else if (/worldwide/i.test(locationString)) {
 				didNotGetCoords(user.screen_name);
 				return;
 			} else if (/Universe/i.test(locationString)) {
